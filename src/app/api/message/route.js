@@ -4,35 +4,74 @@ import { nanoid } from "nanoid";
 import { NextResponse } from "next/server";
 
 export const GET = async (request) => {
+
+  const roomId = request.nextUrl.searchParams.get("roomId");
+
+  const foundRoomy = DB.rooms.find(x => x.roomId === roomId);
+
+
   readDB();
 
-  // return NextResponse.json(
-  //   {
-  //     ok: false,
-  //     message: `Room is not found`,
-  //   },
-  //   { status: 404 }
-  // );
+  if(!foundRoomy)
+  {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: `Room is not found`,
+      },
+      { status: 404 }
+    );
+  }
+
+  const list = [];
+  for(let i=0;i<DB.messages.length;i++){
+    if(DB.messages[i].roomId === roomId)
+    {
+      list.push(DB.messages[i]);
+    }
+  }
+
+
+  return NextResponse.json({
+    ok:true,
+    message:list
+  })
 };
 
 export const POST = async (request) => {
   readDB();
+  const body = await request.json();
 
-  // return NextResponse.json(
-  //   {
-  //     ok: false,
-  //     message: `Room is not found`,
-  //   },
-  //   { status: 404 }
-  // );
+  const { roomId , messageText } = body;
+
+  let checkagain = 0;
+  for(let i=0;i<DB.rooms.length;i++)
+  {
+    if(DB.rooms[i].roomId === roomId) checkagain += 1;
+  }
+
+  if(checkagain == 0)
+  {
+    return NextResponse.json(
+      {
+        ok: false,
+        message: `Room is not found`,
+      },
+      { status: 404 }
+    );
+
+  }
+
 
   const messageId = nanoid();
 
   writeDB();
 
+
+
   return NextResponse.json({
     ok: true,
-    // messageId,
+    messageId,
     message: "Message has been sent",
   });
 };
